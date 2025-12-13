@@ -1,11 +1,17 @@
 package org.zadanko.domain;
 
 public class Commodity extends Asset {
-    private final double storageRatePerUnit; // koszt przechowywania na jednostkę
+
+    private final double storageRatePerUnit;
 
     public Commodity(String id, double unitPrice, double quantity, double storageRatePerUnit) {
         super(id, unitPrice, quantity);
-        if (storageRatePerUnit < 0) throw new IllegalArgumentException("storageRatePerUnit must be >= 0");
+        if (storageRatePerUnit < 0) {
+            throw new IllegalArgumentException("storageRatePerUnit must be >= 0");
+        }
+        if (storageRatePerUnit >= unitPrice) {
+            throw new IllegalArgumentException("storageRatePerUnit must be < unitPrice");
+        }
         this.storageRatePerUnit = storageRatePerUnit;
     }
 

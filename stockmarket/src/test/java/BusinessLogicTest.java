@@ -12,45 +12,58 @@ public class BusinessLogicTest {
     @Test
     void polymorphismDifferentRealValues() {
         double unitPrice = 100.0;
-        double quantity = 10.0; // gross = 1000.0
+        double quantity = 10.0;
 
         Share share = new Share("S1", unitPrice, quantity);
-        Commodity commodity = new Commodity("C1", unitPrice, quantity, 2.0); // storage 2 per unit => cost 20
-        Currency currency = new Currency("CU1", unitPrice, quantity, 1.5); // spread 1.5 => bid=98.5 => value=985
+        Commodity commodity = new Commodity("C1", unitPrice, quantity, 2.0);
+        Currency currency = new Currency("CU1", unitPrice, quantity, 1.5);
 
-        double vShare = share.realValue();        // expect 1000 - 5 = 995
-        double vCommodity = commodity.realValue(); // expect 1000 - 20 = 980
-        double vCurrency = currency.realValue();   // expect (100-1.5)*10 = 985
+        double vShare = share.realValue();         // 995
+        double vCommodity = commodity.realValue(); // 980
+        double vCurrency = currency.realValue();   // 985
 
-        // wszystkie wyniki muszą być różne
-        assertNotEquals(vShare, vCommodity, "Share and Commodity should have different real values");
-        assertNotEquals(vShare, vCurrency, "Share and Currency should have different real values");
-        assertNotEquals(vCommodity, vCurrency, "Commodity and Currency should have different real values");
+        assertNotEquals(vShare, vCommodity);
+        assertNotEquals(vShare, vCurrency);
+        assertNotEquals(vCommodity, vCurrency);
+    }
+    @Test
+    void assetRejectsInvalidArguments() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new Share(null, 100.0, 1.0));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> new Share("S", -10.0, 1.0));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> new Share("S", 10.0, 0.0));
     }
 
     @Test
     void purchaseFailsWhenInsufficientFunds() {
-        Portfolio portfolio = new Portfolio(50.0); // mało gotówki
-        Share expensiveShare = new Share("S-exp", 100.0, 1.0); // purchaseCost = 100 + 5 = 105
+        Portfolio portfolio = new Portfolio(50.0);
+        Share expensiveShare = new Share("S-exp", 100.0, 1.0);
 
-        Exception ex = assertThrows(InsufficientFundsException.class, () -> {
-            portfolio.buy(expensiveShare);
-        });
-        String msg = ex.getMessage();
-        assertTrue(msg.contains("Not enough cash"));
+        InsufficientFundsException ex = assertThrows(
+                InsufficientFundsException.class,
+                () -> portfolio.buy(expensiveShare)
+        );
+
+        assertTrue(ex.getMessage().contains("Not enough cash"));
     }
 
     @Test
     void portfolioAuditSumsPolymorphicValues() throws InsufficientFundsException {
         Portfolio p = new Portfolio(5000.0);
-        // kupujemy różne aktywa
-        p.buy(new Share("S2", 100.0, 5.0));         // purchase cost 500 + 5 = 505
-        p.buy(new Commodity("C2", 50.0, 10.0, 1.0)); // purchase cost 500 + 10 = 510
-        p.buy(new Currency("CU2", 10.0, 10.0, 0.5)); // purchase cost 100
+
+        p.buy(new Share("S2", 100.0, 5.0));          // 495
+        p.buy(new Commodity("C2", 50.0, 10.0, 1.0)); // 490
+        p.buy(new Currency("CU2", 10.0, 10.0, 0.5)); // 95
 
         double audit = p.auditTotalValue();
-        double expected = p.getAssets().stream().mapToDouble(Asset::realValue).sum();
+        double expected = 495.0 + 490.0 + 95.0;
+
         assertEquals(expected, audit, 1e-9);
     }
 }
+
 

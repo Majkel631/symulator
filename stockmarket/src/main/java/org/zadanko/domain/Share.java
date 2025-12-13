@@ -1,8 +1,9 @@
 package org.zadanko.domain;
 
 public class Share extends Asset {
-    private static final double MAX_MANIP_FEE = 5.0; // maksymalna opłata
-    private static final double FEE_PERCENT = 0.01;  // 1% wartości brutto
+
+    private static final double MAX_MANIP_FEE = 5.0;
+    private static final double FEE_PERCENT = 0.01;
 
     public Share(String id, double unitPrice, double quantity) {
         super(id, unitPrice, quantity);
